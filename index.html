@@ -518,7 +518,7 @@
                 </div>
                 <div class="total-row">
                     <span>Descuentos:</span>
-                    <span>RD$ <input type="number" id="descuentos" value="0" step="0.01" onchange="calculateTotals()" style="width: 120px; text-align: right;"></span>
+                    <span>RD$ <input type="text" id="descuentos" value="0.00" placeholder="0.00" oninput="formatCurrency(this)" onblur="validateAmount(this)" style="width: 120px; text-align: right;"></span>
                 </div>
                 <div class="total-row final">
                     <span>TOTAL A PAGAR:</span>
@@ -756,8 +756,9 @@
             const itbisRD = subtotalRD * 0.18;
             const itbisUSD = subtotalUSD * 0.18;
 
-            // Obtener descuentos (por ahora solo en RD$)
-            const descuentosRD = parseFloat(document.getElementById('descuentos').value) || 0;
+            // Obtener descuentos (limpiar el valor antes de parsear)
+            const descuentosValue = document.getElementById('descuentos').value.replace(/[^\d.]/g, '');
+            const descuentosRD = parseFloat(descuentosValue) || 0;
 
             // Calcular totales
             const totalRD = subtotalRD + itbisRD - descuentosRD;
