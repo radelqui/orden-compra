@@ -959,14 +959,13 @@
             doc.text(document.getElementById('fechaCliente').value, 120, yPos);
 
             // FOOTER
-            yPos = 280;
-            doc.setFontSize(7);
-            doc.setTextColor(...greenColor);
-            doc.text('HYGHU & ASOCIADOS • RNC-131047939', 105, yPos, { align: 'center' });
-            yPos += 4;
-            doc.text('PLAZA EL DORAL - PUERTO PLATA - REP. DOMINICANA', 105, yPos, { align: 'center' });
-            yPos += 4;
-            doc.text('DOCUMENTO OFICIAL - USO EXCLUSIVO EMPRESARIAL', 105, yPos, { align: 'center' });
+            doc.setFontSize(8);
+            doc.setTextColor(128, 128, 128);
+            const footerY = doc.internal.pageSize.height - 15;
+            doc.text('HYGHU & ASOCIADOS • RNC-131047939', 105, footerY, { align: 'center' });
+            doc.text('Plaza El Doral - Puerto Plata - República Dominicana', 105, footerY + 4, { align: 'center' });
+            doc.text(`Orden generada: ${new Date().toLocaleString('es-DO')}`, 105, footerY + 8, { align: 'center' });
+            doc.text('Documento oficial - Uso exclusivo empresarial', 105, footerY + 12, { align: 'center' });
 
             // Guardar PDF
             const filename = `Orden_${orderData.orden_numero}_${orderData.cliente_nombre}_FIRMADA.pdf`;

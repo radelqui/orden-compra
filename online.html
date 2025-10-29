@@ -845,6 +845,76 @@
             document.getElementById('linkModal').style.display = 'none';
         }
 
+        // Función para enviar email (abre cliente de correo)
+        function sendEmailToClient() {
+            const clientEmail = document.getElementById('email').value;
+            const clientName = document.getElementById('razonSocial').value;
+            const link = document.getElementById('clientLink').textContent;
+            const ordenNumero = document.getElementById('numeroOrden').value;
+
+            const subject = `Orden de Servicio ${ordenNumero} - HYGHU & ASOCIADOS`;
+            const body = `Estimado/a ${clientName},
+
+Le enviamos su Orden de Servicio ${ordenNumero} para revisión y firma.
+
+Por favor acceda al siguiente enlace para revisar los detalles y firmar digitalmente:
+
+${link}
+
+Una vez firmada, recibirá automáticamente el PDF final con ambas firmas.
+
+Si tiene alguna pregunta, no dude en contactarnos.
+
+Saludos cordiales,
+HYGHU & ASOCIADOS
+Consultoría Empresarial
+RNC: 131047939`;
+
+            window.location.href = `mailto:${clientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        }
+
+        // Función para compartir por WhatsApp
+        function shareWhatsApp() {
+            const clientName = document.getElementById('razonSocial').value;
+            const link = document.getElementById('clientLink').textContent;
+            const ordenNumero = document.getElementById('numeroOrden').value;
+
+            const message = `Hola ${clientName}, te envío la Orden de Servicio ${ordenNumero} de HYGHU & ASOCIADOS para tu revisión y firma digital: ${link}`;
+
+            const whatsappURL = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(whatsappURL, '_blank');
+        }
+
+        // Función para mostrar loader
+        function showLoader(message) {
+            const loader = document.createElement('div');
+            loader.id = 'loader';
+            loader.innerHTML = `
+                <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:99999; display:flex; justify-content:center; align-items:center;">
+                    <div style="background:white; padding:30px; border-radius:15px; text-align:center;">
+                        <div style="border: 4px solid #f3f3f3; border-top: 4px solid #2E7D32; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+                        <p style="margin:0; font-weight:bold; color:#333;">${message}</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(loader);
+        }
+
+        function hideLoader() {
+            const loader = document.getElementById('loader');
+            if (loader) loader.remove();
+        }
+
+        // Agregar animación CSS para el spinner
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+
         // Validar formato de email
         function validateEmail(email) {
             const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -991,8 +1061,10 @@
                 estado: 'pendiente_cliente'
             };
 
-            // Guardar en Supabase
+            // Guardar en Supabase con loader
+            showLoader('Guardando orden en base de datos...');
             const savedOrder = await saveOrderToSupabase(orderData);
+            hideLoader();
 
             if (!savedOrder) {
                 showAlert('Error al guardar la orden', 'error');
@@ -1132,14 +1204,13 @@
             doc.text(document.getElementById('fechaCliente').value, 120, yPos);
 
             // FOOTER
-            yPos = 280;
-            doc.setFontSize(7);
-            doc.setTextColor(...greenColor);
-            doc.text('HYGHU & ASOCIADOS • RNC-131047939', 105, yPos, { align: 'center' });
-            yPos += 4;
-            doc.text('PLAZA EL DORAL - PUERTO PLATA - REP. DOMINICANA', 105, yPos, { align: 'center' });
-            yPos += 4;
-            doc.text('DOCUMENTO OFICIAL - USO EXCLUSIVO EMPRESARIAL', 105, yPos, { align: 'center' });
+            doc.setFontSize(8);
+            doc.setTextColor(128, 128, 128);
+            const footerY = doc.internal.pageSize.height - 15;
+            doc.text('HYGHU & ASOCIADOS • RNC-131047939', 105, footerY, { align: 'center' });
+            doc.text('Plaza El Doral - Puerto Plata - República Dominicana', 105, footerY + 4, { align: 'center' });
+            doc.text(`Orden generada: ${new Date().toLocaleString('es-DO')}`, 105, footerY + 8, { align: 'center' });
+            doc.text('Documento oficial - Uso exclusivo empresarial', 105, footerY + 12, { align: 'center' });
 
             // Guardar PDF
             const filename = `Orden_${document.getElementById('numeroOrden').value}_${document.getElementById('razonSocial').value}.pdf`;
@@ -1152,17 +1223,34 @@
     <!-- Modal para mostrar el link al cliente -->
     <div id="linkModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
         <div style="background:white; padding:40px; border-radius:15px; max-width:600px; text-align:center;">
-            <h2 style="color:#2E7D32; margin-bottom:20px;">✅ Orden Guardada</h2>
-            <p style="margin-bottom:20px;">Comparte este enlace con tu cliente para que firme:</p>
+            <h2 style="color:#2E7D32; margin-bottom:20px;">✅ Orden Guardada Exitosamente</h2>
+
+            <p style="margin-bottom:15px; font-weight:bold;">Link para el cliente:</p>
             <div style="background:#f5f5f5; padding:15px; border-radius:8px; margin-bottom:20px; word-break:break-all;">
                 <strong id="clientLink"></strong>
             </div>
-            <button onclick="copyLink()" style="background:#2E7D32; color:white; border:none; padding:12px 30px; border-radius:8px; cursor:pointer; margin-right:10px;">
-                📋 Copiar Link
-            </button>
-            <button onclick="closeModal()" style="background:#666; color:white; border:none; padding:12px 30px; border-radius:8px; cursor:pointer;">
-                Cerrar
-            </button>
+
+            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                <button onclick="copyLink()" style="background:#2E7D32; color:white; border:none; padding:12px 25px; border-radius:8px; cursor:pointer; font-weight:bold;">
+                    📋 Copiar Link
+                </button>
+
+                <button onclick="sendEmailToClient()" style="background:#1976d2; color:white; border:none; padding:12px 25px; border-radius:8px; cursor:pointer; font-weight:bold;">
+                    📧 Enviar por Email
+                </button>
+
+                <button onclick="shareWhatsApp()" style="background:#25d366; color:white; border:none; padding:12px 25px; border-radius:8px; cursor:pointer; font-weight:bold;">
+                    💬 Compartir WhatsApp
+                </button>
+
+                <button onclick="closeModal()" style="background:#666; color:white; border:none; padding:12px 25px; border-radius:8px; cursor:pointer;">
+                    Cerrar
+                </button>
+            </div>
+
+            <p style="margin-top:20px; font-size:13px; color:#666;">
+                💡 Tip: Puedes copiar el link y enviarlo por el medio que prefieras
+            </p>
         </div>
     </div>
 
