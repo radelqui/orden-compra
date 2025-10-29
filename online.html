@@ -401,6 +401,9 @@
         </div>
 
         <div class="form-content">
+            <div style="background: #1976d2; color: white; padding: 10px; text-align: center; font-weight: bold; border-radius: 10px; margin-bottom: 20px;">
+                🌐 VERSIÓN ONLINE - Firma colaborativa con cliente
+            </div>
             <div class="alert" id="alert"></div>
 
             <!-- DATOS DEL CLIENTE -->
@@ -735,8 +738,39 @@
             document.getElementById('linkModal').style.display = 'none';
         }
 
+        // Generar número de orden automático
+        async function getNextOrderNumber() {
+            try {
+                const { data, error } = await supabase
+                    .from('ordenes_servicio')
+                    .select('orden_numero')
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    // Extraer número y sumar 1
+                    const lastNumber = parseInt(data[0].orden_numero.split('-')[1]);
+                    return `ODC-${String(lastNumber + 1).padStart(5, '0')}`;
+                } else {
+                    // Primera orden
+                    return 'ODC-00001';
+                }
+            } catch (error) {
+                console.error('Error obteniendo número de orden:', error);
+                return `ODC-${Date.now()}`; // Fallback con timestamp
+            }
+        }
+
         async function generatePDF() {
             if (!validateForm()) return;
+
+            showAlert('Generando número de orden...', 'success');
+
+            // Generar número de orden automático
+            const ordenNumero = await getNextOrderNumber();
+            document.getElementById('numeroOrden').value = ordenNumero;
 
             showAlert('Guardando orden...', 'success');
 
