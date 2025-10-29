@@ -499,7 +499,9 @@
                                 <option value="USD">USD</option>
                             </select>
                         </td>
-                        <td><input type="number" class="service-amount" placeholder="0.00" step="0.01" onchange="calculateTotals()"></td>
+                        <td><input type="text" class="service-amount" placeholder="0.00"
+                                   oninput="formatCurrency(this)"
+                                   onblur="validateAmount(this)"></td>
                         <td><button onclick="removeServiceRow(this)" class="remove-btn">❌</button></td>
                     </tr>
                 </tbody>
@@ -689,7 +691,7 @@
                         <option value="USD">USD</option>
                     </select>
                 </td>
-                <td><input type="number" class="service-amount" placeholder="0.00" step="0.01" onchange="calculateTotals()"></td>
+                <td><input type="text" class="service-amount" placeholder="0.00" oninput="formatCurrency(this)" onblur="validateAmount(this)"></td>
                 <td><button onclick="removeServiceRow(this)" class="remove-btn" style="background:#f44336; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">❌</button></td>
             `;
         }
@@ -697,6 +699,35 @@
         function removeServiceRow(button) {
             const row = button.closest('tr');
             row.remove();
+            calculateTotals();
+        }
+
+        // Formatear input de moneda mientras escribe
+        function formatCurrency(input) {
+            // Eliminar todo excepto números y puntos
+            let value = input.value.replace(/[^\d.]/g, '');
+
+            // Permitir solo un punto decimal
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+
+            // Limitar a 2 decimales
+            if (parts[1] && parts[1].length > 2) {
+                value = parts[0] + '.' + parts[1].substring(0, 2);
+            }
+
+            input.value = value;
+        }
+
+        // Validar y formatear al salir del campo
+        function validateAmount(input) {
+            let value = parseFloat(input.value);
+            if (isNaN(value) || value < 0) {
+                value = 0;
+            }
+            input.value = value.toFixed(2);
             calculateTotals();
         }
 
@@ -710,7 +741,10 @@
                 const currencySelect = row.querySelector('.service-currency');
 
                 if (amountInput && amountInput.value && currencySelect) {
-                    const amount = parseFloat(amountInput.value) || 0;
+                    // Limpiar y parsear el valor
+                    const cleanValue = amountInput.value.replace(/[^\d.]/g, '');
+                    const amount = parseFloat(cleanValue) || 0;
+
                     if (currencySelect.value === 'RD$') {
                         subtotalRD += amount;
                     } else {
@@ -826,10 +860,37 @@
             }
         }
 
-        // Mostrar modal con link
+        // Mostrar modal con link (CORRECCIÓN 5: Auto-copy y alert mejorado)
         function showClientLink(orderId) {
             const link = `https://app.huyghusrl.com/orden-compra/cliente.html?id=${orderId}`;
             document.getElementById('clientLink').textContent = link;
+
+            // Auto-copiar link al portapapeles
+            navigator.clipboard.writeText(link).then(() => {
+                console.log('Link copiado automáticamente al portapapeles');
+            }).catch(err => {
+                console.error('Error al copiar link:', err);
+            });
+
+            // Mostrar alert con instrucciones detalladas
+            const ordenNumero = document.getElementById('numeroOrden').value;
+            const clienteNombre = document.getElementById('razonSocial').value;
+
+            alert(`✅ Orden guardada exitosamente en la base de datos
+
+📋 Número de Orden: ${ordenNumero}
+👤 Cliente: ${clienteNombre}
+
+🔗 El link para firma del cliente ha sido copiado automáticamente al portapapeles.
+
+📨 PRÓXIMOS PASOS:
+1. Envía el link al cliente por email o WhatsApp
+2. El cliente podrá revisar y firmar digitalmente
+3. Una vez firmado, el PDF final se generará automáticamente
+
+💡 Puedes usar los botones en el modal para compartir de manera más fácil.`);
+
+            // Mostrar modal con opciones de compartir
             document.getElementById('linkModal').style.display = 'flex';
         }
 
@@ -993,6 +1054,15 @@ RNC: 131047939`;
             // Generar UUID para la orden
             const orderId = generateUUID();
 
+            // Auto-completar observaciones si está vacío (CORRECCIÓN 3)
+            const observaciones = document.getElementById('observaciones');
+            if (!observaciones.value.trim()) {
+                const ordenNumero = document.getElementById('numeroOrden').value;
+                const clienteNombre = document.getElementById('razonSocial').value;
+                const fechaEmision = document.getElementById('fechaEmision').value;
+                observaciones.value = `Orden de servicio ${ordenNumero} emitida para ${clienteNombre} en fecha ${fechaEmision}. Favor proceder con la revisión y firma del documento.`;
+            }
+
             // Capturar servicios con moneda
             const serviceRows = document.querySelectorAll('#servicesBody tr');
             const services = [];
@@ -1074,7 +1144,10 @@ RNC: 131047939`;
             showAlert('¡Orden guardada exitosamente!', 'success');
 
             // Mostrar modal con el link para el cliente
-            showClientLink(orderId);
+            showClientLink(savedOrder.id);
+
+            // Limpiar localStorage después de guardar exitosamente
+            localStorage.removeItem('draft_orden');
 
             // Opcional: Generar PDF para HYGHU como respaldo
             showAlert('Generando PDF de respaldo...', 'success');
