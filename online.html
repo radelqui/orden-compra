@@ -41,15 +41,16 @@
         }
 
         .header-logo {
-            flex: 0 0 150px;
+            flex: 0 0 250px;
         }
 
         .header-logo img {
-            width: 150px;
+            max-width: 250px;
             height: auto;
             background: white;
             padding: 10px;
             border-radius: 8px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
 
         .header-content {
@@ -439,8 +440,8 @@
             <div class="section-title">📝 DATOS DE LA ORDEN</div>
             <div class="form-row">
                 <div class="form-group">
-                    <label>Número de Orden *</label>
-                    <input type="text" id="numeroOrden" placeholder="OC-" required>
+                    <label>Número de Orden (Auto-generado)</label>
+                    <input type="text" id="numeroOrden" placeholder="Se generará automáticamente..." readonly style="background-color: #f0f0f0; cursor: not-allowed;">
                 </div>
                 <div class="form-group">
                     <label>Fecha de Emisión *</label>
@@ -650,42 +651,52 @@
         }
 
         function validateForm() {
-            // Validar campos requeridos
-            const required = ['razonSocial', 'rnc', 'direccion', 'telefono', 'email', 
-                            'numeroOrden', 'fechaEmision', 'fechaVencimiento', 
-                            'nombreCliente', 'fechaCliente'];
-            
-            for (let field of required) {
-                const element = document.getElementById(field);
-                if (!element.value.trim()) {
-                    showAlert('Por favor complete todos los campos requeridos (*)', 'error');
-                    element.focus();
-                    return false;
-                }
+            // Validar nombre del cliente
+            if (!document.getElementById('razonSocial').value.trim()) {
+                showAlert('❌ Por favor ingresa el nombre del cliente (Razón Social)', 'error');
+                document.getElementById('razonSocial').focus();
+                return false;
             }
 
-            // Validar que hay al menos un servicio
-            const serviceDescs = document.querySelectorAll('.service-desc');
-            let hasService = false;
-            serviceDescs.forEach(input => {
-                if (input.value.trim()) hasService = true;
-            });
+            // Validar RNC
+            if (!document.getElementById('rnc').value.trim()) {
+                showAlert('❌ Por favor ingresa el RNC del cliente', 'error');
+                document.getElementById('rnc').focus();
+                return false;
+            }
 
-            if (!hasService) {
-                showAlert('Debe agregar al menos un servicio', 'error');
+            // Validar Email
+            if (!document.getElementById('email').value.trim()) {
+                showAlert('❌ Por favor ingresa el email del cliente', 'error');
+                document.getElementById('email').focus();
+                return false;
+            }
+
+            // Validar dirección
+            if (!document.getElementById('direccion').value.trim()) {
+                showAlert('❌ Por favor ingresa la dirección del cliente', 'error');
+                document.getElementById('direccion').focus();
+                return false;
+            }
+
+            // Validar teléfono
+            if (!document.getElementById('telefono').value.trim()) {
+                showAlert('❌ Por favor ingresa el teléfono del cliente', 'error');
+                document.getElementById('telefono').focus();
+                return false;
+            }
+
+            // Validar fecha de emisión
+            if (!document.getElementById('fechaEmision').value) {
+                showAlert('❌ Por favor selecciona la fecha de emisión', 'error');
+                document.getElementById('fechaEmision').focus();
                 return false;
             }
 
             // Validar modalidad de pago
             const modalidad = document.querySelector('input[name="modalidadPago"]:checked');
             if (!modalidad) {
-                showAlert('Debe seleccionar una modalidad de pago', 'error');
-                return false;
-            }
-
-            // Validar firma del cliente
-            if (signaturePadCliente.isEmpty()) {
-                showAlert('El cliente debe firmar el documento', 'error');
+                showAlert('❌ Por favor selecciona una modalidad de pago', 'error');
                 return false;
             }
 
@@ -800,9 +811,17 @@
 
             // Capturar firma de HYGHU (validar que no esté vacía)
             if (signaturePadHyghu.isEmpty()) {
-                showAlert('Debe firmar como representante de HYGHU', 'error');
+                showAlert('❌ Por favor firma como representante de HYGHU', 'error');
                 return;
             }
+
+            // Validar nombre del firmante de HYGHU
+            if (!document.getElementById('nombreHyghu').value.trim()) {
+                showAlert('❌ Por favor ingresa tu nombre como firmante de HYGHU', 'error');
+                document.getElementById('nombreHyghu').focus();
+                return;
+            }
+
             const firmaHyghu = signaturePadHyghu.toDataURL();
 
             // Preparar datos para Supabase (nombres de columnas correctos)
