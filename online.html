@@ -6,7 +6,10 @@
     <title>Orden de Servicio - HYGHU & ASOCIADOS</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.7/signature_pad.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- jsPDF autoTable para PDFs profesionales -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <!-- Supabase con versión específica que funciona -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2.39.0/dist/umd/supabase.js"></script>
     <script src="config.js"></script>
     <style>
         * {
@@ -1146,6 +1149,34 @@ RNC: 131047939`;
                 console.error('Error obteniendo número de orden:', error);
                 return `ODC-${Date.now()}`; // Fallback con timestamp
             }
+        }
+
+        // Función helper para obtener servicios del formulario
+        function getServiciosArray() {
+            const serviceRows = document.querySelectorAll('#servicesBody tr');
+            const servicios = [];
+
+            serviceRows.forEach(row => {
+                const desc = row.querySelector('.service-desc');
+                const currency = row.querySelector('.service-currency');
+                const amount = row.querySelector('.service-amount');
+
+                if (desc && desc.value.trim() && amount && amount.value) {
+                    servicios.push({
+                        descripcion: desc.value.trim(),
+                        moneda: currency.value,
+                        monto: parseFloat(amount.value.replace(/,/g, '')) || 0
+                    });
+                }
+            });
+
+            return servicios;
+        }
+
+        // Función helper para obtener modalidad de pago
+        function getModalidadPago() {
+            const checked = document.querySelector('input[name="modalidadPago"]:checked');
+            return checked ? checked.value : 'No especificada';
         }
 
         async function generatePDF() {
