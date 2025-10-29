@@ -852,11 +852,16 @@ Gracias por su colaboración.`);
         }
 
         async function generatePDF(firmaCliente) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+            try {
+                console.log('📄 Iniciando generación de PDF...');
+                console.log('📋 orderData:', orderData);
+                console.log('✍️ firmaCliente:', firmaCliente ? 'Presente' : 'Ausente');
 
-            const greenColor = [46, 125, 50];
-            let yPos = 20;
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                const greenColor = [46, 125, 50];
+                let yPos = 20;
 
             // HEADER
             doc.setFontSize(20);
@@ -995,9 +1000,18 @@ Gracias por su colaboración.`);
             doc.text(`Orden generada: ${new Date().toLocaleString('es-DO')}`, 105, footerY + 8, { align: 'center' });
             doc.text('Documento oficial - Uso exclusivo empresarial', 105, footerY + 12, { align: 'center' });
 
-            // Guardar PDF
-            const filename = `Orden_${orderData.orden_numero}_${orderData.cliente_nombre}_FIRMADA.pdf`;
-            doc.save(filename);
+                // Guardar PDF
+                const filename = `Orden_${orderData.orden_numero}_${orderData.cliente_nombre}_FIRMADA.pdf`;
+                console.log('💾 Guardando PDF con nombre:', filename);
+                doc.save(filename);
+                console.log('✅ PDF descargado exitosamente');
+
+            } catch (error) {
+                console.error('❌ Error generando PDF:', error);
+                console.error('❌ Error stack:', error.stack);
+                alert('❌ Error al generar PDF: ' + error.message + '\n\nRevisa la consola para más detalles.');
+                throw error;
+            }
         }
     </script>
 </body>
