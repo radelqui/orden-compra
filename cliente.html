@@ -704,6 +704,46 @@
 
             document.getElementById('nombreHyghu').value = data.hyghu_firmante || '';
             document.getElementById('fechaHyghu').value = data.fecha_firma_hyghu ? data.fecha_firma_hyghu.split('T')[0] : '';
+
+            // Mostrar estado de la orden
+            const estadoBadge = document.createElement('div');
+            estadoBadge.style.cssText = `
+                background: ${data.estado === 'completada' ? '#4caf50' : '#ff9800'};
+                color: white;
+                padding: 10px;
+                text-align: center;
+                font-weight: bold;
+                border-radius: 8px;
+                margin-bottom: 20px;
+            `;
+            estadoBadge.textContent = data.estado === 'completada'
+                ? '✅ ORDEN COMPLETADA - Firmada por ambas partes'
+                : '⏳ PENDIENTE - Esperando firma del cliente';
+
+            // Insertar antes del primer section-title
+            const firstSection = document.querySelector('.section-title');
+            firstSection.parentNode.insertBefore(estadoBadge, firstSection);
+
+            // Si ya está completada, deshabilitar firma
+            if (data.estado === 'completada' && data.firma_cliente) {
+                document.querySelector('.signature-pad-container').style.display = 'none';
+                document.querySelector('.signature-controls').style.display = 'none';
+                const btn = document.getElementById('submitBtn');
+                btn.disabled = true;
+                btn.textContent = '✅ Ya firmado';
+                btn.style.background = '#9e9e9e';
+
+                // Mostrar firma del cliente
+                const img = document.createElement('img');
+                img.src = data.firma_cliente;
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = '150px';
+                img.style.border = '2px solid #4caf50';
+                img.style.borderRadius = '6px';
+                img.style.padding = '10px';
+                img.style.background = 'white';
+                document.querySelector('.signature-pad-container').parentNode.insertBefore(img, document.querySelector('.signature-pad-container'));
+            }
         }
 
         function clearSignature() {

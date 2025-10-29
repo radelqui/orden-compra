@@ -439,7 +439,9 @@
                 </div>
                 <div class="form-group">
                     <label>RNC *</label>
-                    <input type="text" id="rnc" required>
+                    <input type="text" id="rnc" placeholder="000-00000-0" maxlength="11"
+                           oninput="formatRNC(this)"
+                           onblur="if(!validateRNC(this.value) && this.value) alert('⚠️ RNC debe tener 9 dígitos')" required>
                 </div>
             </div>
             <div class="form-row">
@@ -455,7 +457,8 @@
                 </div>
                 <div class="form-group">
                     <label>Correo Electrónico *</label>
-                    <input type="email" id="email" required>
+                    <input type="email" id="email" placeholder="correo@ejemplo.com"
+                           onblur="if(!validateEmail(this.value) && this.value) alert('⚠️ Email inválido')" required>
                 </div>
             </div>
 
@@ -472,7 +475,7 @@
                 </div>
                 <div class="form-group">
                     <label>Fecha de Vencimiento *</label>
-                    <input type="date" id="fechaVencimiento" required>
+                    <input type="date" id="fechaVencimiento" onchange="validateDates()" required>
                 </div>
             </div>
 
@@ -636,7 +639,36 @@
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('fechaEmision').value = today;
             document.getElementById('fechaCliente').value = today;
+
+            // Recuperar borrador guardado
+            const draft = localStorage.getItem('draft_orden');
+            if (draft) {
+                const data = JSON.parse(draft);
+                if (confirm('📋 Hay un borrador guardado. ¿Deseas recuperarlo?')) {
+                    if (data.razonSocial) document.getElementById('razonSocial').value = data.razonSocial;
+                    if (data.telefono) document.getElementById('telefono').value = data.telefono;
+                    if (data.email) document.getElementById('email').value = data.email;
+                    if (data.direccion) document.getElementById('direccion').value = data.direccion;
+                    if (data.rnc) document.getElementById('rnc').value = data.rnc;
+                    if (data.observaciones) document.getElementById('observaciones').value = data.observaciones;
+                } else {
+                    localStorage.removeItem('draft_orden');
+                }
+            }
         });
+
+        // Autoguardar cada 30 segundos
+        setInterval(() => {
+            const formData = {
+                razonSocial: document.getElementById('razonSocial').value,
+                telefono: document.getElementById('telefono').value,
+                email: document.getElementById('email').value,
+                direccion: document.getElementById('direccion').value,
+                rnc: document.getElementById('rnc').value,
+                observaciones: document.getElementById('observaciones').value
+            };
+            localStorage.setItem('draft_orden', JSON.stringify(formData));
+        }, 30000);
 
         function clearSignature(type) {
             if (type === 'hyghu') {
@@ -811,6 +843,44 @@
         // Cerrar modal
         function closeModal() {
             document.getElementById('linkModal').style.display = 'none';
+        }
+
+        // Validar formato de email
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        // Validar RNC dominicano (9 dígitos)
+        function validateRNC(rnc) {
+            const re = /^\d{9}$/;
+            return re.test(rnc.replace(/\-/g, ''));
+        }
+
+        // Formatear RNC automáticamente
+        function formatRNC(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length > 9) value = value.substring(0, 9);
+
+            if (value.length > 6) {
+                value = value.substring(0, 3) + '-' + value.substring(3, 8) + '-' + value.substring(8);
+            } else if (value.length > 3) {
+                value = value.substring(0, 3) + '-' + value.substring(3);
+            }
+
+            input.value = value;
+        }
+
+        // Validar fechas
+        function validateDates() {
+            const emision = new Date(document.getElementById('fechaEmision').value);
+            const vencimiento = new Date(document.getElementById('fechaVencimiento').value);
+
+            if (vencimiento <= emision) {
+                alert('⚠️ La fecha de vencimiento debe ser posterior a la fecha de emisión');
+                return false;
+            }
+            return true;
         }
 
         // Generar número de orden automático
