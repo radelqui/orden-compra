@@ -1271,11 +1271,23 @@ RNC: 131047939`;
                 estado: 'pendiente_cliente'
             };
 
+            // DEBUG: Mostrar datos que se van a guardar
+            console.log('📋 DATOS A GUARDAR:', JSON.stringify(orderData, null, 2));
+            console.log('🔍 Verificando campos críticos:');
+            console.log('  - ID:', orderData.id);
+            console.log('  - Cliente:', orderData.cliente_nombre);
+            console.log('  - Email:', orderData.cliente_email);
+            console.log('  - Servicios:', orderData.servicios);
+            console.log('  - Total:', orderData.total);
+
             // Guardar en Supabase con loader
             showLoader('Guardando orden en base de datos...');
 
             try {
+                console.log('⏳ Llamando a saveOrderToSupabase...');
                 const savedOrder = await saveOrderToSupabase(orderData);
+                console.log('✅ saveOrderToSupabase completado');
+
                 hideLoader();
 
                 console.log('📦 Datos guardados:', savedOrder);
@@ -1294,13 +1306,15 @@ RNC: 131047939`;
 
                     console.log('✅ Orden guardada con ID:', savedOrder.id);
                 } else {
-                    console.error('❌ Error: savedOrder no tiene ID');
-                    alert('❌ Error: No se pudo guardar la orden');
+                    console.error('❌ Error: savedOrder no tiene ID', savedOrder);
+                    alert('❌ Error: No se pudo guardar la orden. savedOrder: ' + JSON.stringify(savedOrder));
                 }
             } catch (error) {
                 hideLoader();
-                console.error('Error completo:', error);
-                alert('❌ Error al guardar: ' + error.message);
+                console.error('❌ Error completo:', error);
+                console.error('❌ Error stack:', error.stack);
+                console.error('❌ Error message:', error.message);
+                alert('❌ Error al guardar: ' + error.message + '\n\nRevisa la consola para más detalles.');
                 return;
             }
 
