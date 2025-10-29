@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS ordenes_servicio (
     total DECIMAL(10,2),
     observaciones TEXT,
     modalidad_pago VARCHAR(100),
+    condiciones_pago VARCHAR(255),
     firma_hyghu TEXT,
     hyghu_firmante VARCHAR(255),
     fecha_firma_hyghu TIMESTAMP,
@@ -41,6 +42,10 @@ CREATE TABLE IF NOT EXISTS ordenes_servicio (
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
+
+-- PASO 2.5: Agregar columna condiciones_pago si la tabla ya existe
+-- (Este comando fallará si la columna ya existe, pero eso es OK)
+ALTER TABLE ordenes_servicio ADD COLUMN IF NOT EXISTS condiciones_pago VARCHAR(255);
 
 -- PASO 3: Habilitar RLS
 ALTER TABLE ordenes_servicio ENABLE ROW LEVEL SECURITY;

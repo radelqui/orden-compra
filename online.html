@@ -552,6 +552,21 @@
                 </div>
             </div>
 
+            <!-- CONDICIONES DE PAGO (OPCIONAL - SOLO PARA CLIENTES SELECTOS) -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Condiciones de Pago (Opcional)</label>
+                    <select id="condicionesPago" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                        <option value="">-- Seleccionar (dejar vacío si no aplica) --</option>
+                        <option value="Pago completo al finalizar el servicio">Pago completo al finalizar el servicio</option>
+                        <option value="50% de anticipo + 50% al finalizar el servicio">50% de anticipo + 50% al finalizar el servicio</option>
+                    </select>
+                    <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
+                        💡 Este campo es opcional. Solo selecciónalo para clientes específicos que requieran condiciones especiales de pago.
+                    </small>
+                </div>
+            </div>
+
             <!-- TÉRMINOS Y CONDICIONES -->
             <div class="section-title">📜 TÉRMINOS Y CONDICIONES</div>
             <div class="terms-box">
@@ -1278,6 +1293,7 @@ RNC: 131047939`;
                 // Observaciones y pago
                 observaciones: document.getElementById('observaciones').value || '',
                 modalidad_pago: document.querySelector('input[name="modalidadPago"]:checked')?.value || '',
+                condiciones_pago: document.getElementById('condicionesPago').value || '',
                 // Firma de HYGHU
                 firma_hyghu: firmaHyghu,
                 hyghu_firmante: document.getElementById('nombreHyghu').value,

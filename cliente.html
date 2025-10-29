@@ -512,6 +512,18 @@
                     </div>
                 </div>
 
+                <!-- CONDICIONES DE PAGO (solo si aplica) -->
+                <div id="condicionesPagoSection" style="display: none;">
+                    <div class="form-row">
+                        <div class="form-group" style="width: 100%;">
+                            <label>Condiciones de Pago</label>
+                            <div style="padding: 10px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 5px;">
+                                <strong id="condicionesPagoText"></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- TÉRMINOS Y CONDICIONES -->
                 <div class="section-title">📜 TÉRMINOS Y CONDICIONES</div>
                 <div class="terms-box">
@@ -700,6 +712,12 @@
                         ${data.modalidad_pago}
                     </label>
                 `;
+            }
+
+            // Condiciones de Pago (solo si se especificó)
+            if (data.condiciones_pago) {
+                document.getElementById('condicionesPagoSection').style.display = 'block';
+                document.getElementById('condicionesPagoText').textContent = data.condiciones_pago;
             }
 
             // Firma de HYGHU
@@ -977,6 +995,22 @@ Gracias por su colaboración.`);
                 doc.setFont(undefined, 'normal');
                 doc.text(orderData.modalidad_pago, 20, yPos);
                 yPos += 5;
+            }
+
+            // CONDICIONES DE PAGO (solo si se especificó)
+            if (orderData.condiciones_pago) {
+                yPos += 10;
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(...greenColor);
+                doc.text('CONDICIONES DE PAGO:', 20, yPos);
+                yPos += 5;
+                doc.setFontSize(9);
+                doc.setTextColor(0, 0, 0);
+                doc.setFont(undefined, 'normal');
+                const splitCondiciones = doc.splitTextToSize(orderData.condiciones_pago, 170);
+                doc.text(splitCondiciones, 20, yPos);
+                yPos += splitCondiciones.length * 4 + 5;
             }
 
             // TÉRMINOS Y CONDICIONES
