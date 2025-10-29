@@ -1242,6 +1242,21 @@ RNC: 131047939`;
 
             const firmaHyghu = signaturePadHyghu.toDataURL();
 
+            // Calcular totales limpios (sin formato) para guardar en BD
+            let subtotalRD = 0, subtotalUSD = 0;
+            services.forEach(s => {
+                if (s.moneda === 'RD$') {
+                    subtotalRD += s.monto;
+                } else {
+                    subtotalUSD += s.monto;
+                }
+            });
+            const itbisRD = subtotalRD * 0.18;
+            const itbisUSD = subtotalUSD * 0.18;
+            const descuentosValue = parseFloat(document.getElementById('descuentos').value.replace(/,/g, '')) || 0;
+            const totalRD = subtotalRD + itbisRD - descuentosValue;
+            const totalUSD = subtotalUSD + itbisUSD;
+
             // Preparar datos para Supabase (nombres de columnas correctos)
             const orderData = {
                 id: orderId,
@@ -1254,12 +1269,12 @@ RNC: 131047939`;
                 // Datos de la orden
                 orden_numero: document.getElementById('numeroOrden').value,
                 fecha_emision: document.getElementById('fechaEmision').value,
-                // Servicios y totales
+                // Servicios y totales (números limpios)
                 servicios: services, // Supabase acepta JSONB directamente
-                subtotal: parseFloat(document.getElementById('subtotal').textContent),
-                itbis: parseFloat(document.getElementById('itbis').textContent),
-                descuentos: parseFloat(document.getElementById('descuentos').value) || 0,
-                total: parseFloat(document.getElementById('total').textContent),
+                subtotal: subtotalRD + subtotalUSD,
+                itbis: itbisRD + itbisUSD,
+                descuentos: descuentosValue,
+                total: totalRD + totalUSD,
                 // Observaciones y pago
                 observaciones: document.getElementById('observaciones').value || '',
                 modalidad_pago: document.querySelector('input[name="modalidadPago"]:checked')?.value || '',

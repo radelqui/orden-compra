@@ -660,6 +660,11 @@
             document.getElementById('numeroOrden').value = data.orden_numero || '';
             document.getElementById('fechaEmision').value = data.fecha_emision || '';
 
+            // Función helper para formatear números con comas
+            function formatNumber(num) {
+                return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            }
+
             // Servicios
             const servicios = typeof data.servicios === 'string' ? JSON.parse(data.servicios) : data.servicios;
             const tbody = document.getElementById('servicesBody');
@@ -668,18 +673,20 @@
             if (servicios && servicios.length > 0) {
                 servicios.forEach(servicio => {
                     const row = tbody.insertRow();
+                    const moneda = servicio.moneda || 'RD$';
+                    const monto = parseFloat(servicio.monto || 0);
                     row.innerHTML = `
                         <td>${servicio.descripcion}</td>
-                        <td>RD$ ${parseFloat(servicio.monto).toFixed(2)}</td>
+                        <td>${moneda} ${formatNumber(monto)}</td>
                     `;
                 });
             }
 
-            // Totales
-            document.getElementById('subtotal').textContent = parseFloat(data.subtotal || 0).toFixed(2);
-            document.getElementById('itbis').textContent = parseFloat(data.itbis || 0).toFixed(2);
-            document.getElementById('descuentos').textContent = parseFloat(data.descuentos || 0).toFixed(2);
-            document.getElementById('total').textContent = parseFloat(data.total || 0).toFixed(2);
+            // Totales con formato de miles
+            document.getElementById('subtotal').textContent = formatNumber(parseFloat(data.subtotal || 0));
+            document.getElementById('itbis').textContent = formatNumber(parseFloat(data.itbis || 0));
+            document.getElementById('descuentos').textContent = formatNumber(parseFloat(data.descuentos || 0));
+            document.getElementById('total').textContent = formatNumber(parseFloat(data.total || 0));
 
             // Observaciones
             document.getElementById('observaciones').value = data.observaciones || '';
