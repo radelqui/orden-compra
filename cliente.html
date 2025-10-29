@@ -881,6 +881,17 @@ Gracias por su colaboración.`);
                 const greenColor = [46, 125, 50];
                 let yPos = 20;
 
+            // LOGO - Cargar y agregar al PDF
+            try {
+                const logoImg = document.querySelector('.header-logo img');
+                if (logoImg && logoImg.complete) {
+                    // Agregar logo en la esquina superior izquierda
+                    doc.addImage(logoImg.src, 'PNG', 15, 10, 40, 15);
+                }
+            } catch (logoError) {
+                console.warn('⚠️ No se pudo cargar el logo en el PDF:', logoError);
+            }
+
             // HEADER
             doc.setFontSize(20);
             doc.setTextColor(...greenColor);
