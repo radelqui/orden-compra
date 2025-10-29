@@ -920,10 +920,29 @@
         }
 
         // Copiar link al portapapeles
+        // Mejorar copyLink con feedback visual
         function copyLink() {
             const link = document.getElementById('clientLink').textContent;
-            navigator.clipboard.writeText(link);
-            alert('✅ Link copiado al portapapeles');
+            const btn = document.getElementById('copyLinkBtn');
+
+            navigator.clipboard.writeText(link).then(() => {
+                // Cambiar el botón temporalmente
+                const originalText = btn.innerHTML;
+                const originalBg = btn.style.background;
+
+                btn.innerHTML = '✅ ¡Copiado!';
+                btn.style.background = '#4caf50';
+
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = originalBg;
+                }, 2000);
+
+                console.log('📋 Link copiado al portapapeles');
+            }).catch(err => {
+                console.error('Error al copiar:', err);
+                alert('❌ Error al copiar el link');
+            });
         }
 
         // Cerrar modal
@@ -932,42 +951,105 @@
         }
 
         // Función para enviar email (abre cliente de correo)
+        // Función mejorada para enviar email
         function sendEmailToClient() {
             const clientEmail = document.getElementById('email').value;
             const clientName = document.getElementById('razonSocial').value;
             const link = document.getElementById('clientLink').textContent;
             const ordenNumero = document.getElementById('numeroOrden').value;
 
+            // Validar que hay email
+            if (!clientEmail || clientEmail.trim() === '') {
+                alert('❌ No se puede enviar email: falta el correo del cliente');
+                return;
+            }
+
             const subject = `Orden de Servicio ${ordenNumero} - HYGHU & ASOCIADOS`;
+
             const body = `Estimado/a ${clientName},
 
-Le enviamos su Orden de Servicio ${ordenNumero} para revisión y firma.
+Le enviamos su Orden de Servicio ${ordenNumero} para revision y firma digital.
 
-Por favor acceda al siguiente enlace para revisar los detalles y firmar digitalmente:
+Por favor acceda al siguiente enlace para revisar los detalles y firmar:
 
 ${link}
 
-Una vez firmada, recibirá automáticamente el PDF final con ambas firmas.
-
-Si tiene alguna pregunta, no dude en contactarnos.
+Una vez firmada, recibira automaticamente el PDF final.
 
 Saludos cordiales,
 HYGHU & ASOCIADOS
-Consultoría Empresarial
+Consultoria Empresarial
 RNC: 131047939`;
 
-            window.location.href = `mailto:${clientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            // Crear el enlace mailto
+            const mailtoLink = `mailto:${clientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+            // Abrir en nueva ventana
+            window.location.href = mailtoLink;
+
+            // Feedback visual
+            console.log('📧 Abriendo cliente de correo...');
+            console.log('Para:', clientEmail);
+            console.log('Asunto:', subject);
         }
 
-        // Función para compartir por WhatsApp
-        function shareWhatsApp() {
+        // Copiar mensaje de email al portapapeles (alternativa si mailto no funciona)
+        function copyEmailMessage() {
+            const clientEmail = document.getElementById('email').value;
             const clientName = document.getElementById('razonSocial').value;
             const link = document.getElementById('clientLink').textContent;
             const ordenNumero = document.getElementById('numeroOrden').value;
 
-            const message = `Hola ${clientName}, te envío la Orden de Servicio ${ordenNumero} de HYGHU & ASOCIADOS para tu revisión y firma digital: ${link}`;
+            const message = `Para: ${clientEmail}
 
-            const whatsappURL = `https://wa.me/?text=${encodeURIComponent(message)}`;
+Asunto: Orden de Servicio ${ordenNumero} - HYGHU & ASOCIADOS
+
+Estimado/a ${clientName},
+
+Le enviamos su Orden de Servicio ${ordenNumero} para revision y firma digital.
+
+Por favor acceda al siguiente enlace para revisar los detalles y firmar:
+
+${link}
+
+Una vez firmada, recibira automaticamente el PDF final con ambas firmas.
+
+Saludos cordiales,
+HYGHU & ASOCIADOS
+Consultoria Empresarial
+RNC: 131047939`;
+
+            // Copiar al portapapeles
+            navigator.clipboard.writeText(message).then(() => {
+                alert('✅ Mensaje de email copiado al portapapeles\n\nAhora puedes pegarlo en tu cliente de correo');
+                console.log('📋 Mensaje de email copiado');
+            }).catch(err => {
+                console.error('Error al copiar:', err);
+                alert('❌ Error al copiar el mensaje');
+            });
+        }
+
+        // Función mejorada para compartir por WhatsApp
+        function shareWhatsApp() {
+            const clientName = document.getElementById('razonSocial').value;
+            const clientPhone = document.getElementById('telefono').value;
+            const link = document.getElementById('clientLink').textContent;
+            const ordenNumero = document.getElementById('numeroOrden').value;
+
+            const message = `Hola ${clientName}, te envio la Orden de Servicio ${ordenNumero} de HYGHU & ASOCIADOS para tu revision y firma digital: ${link}`;
+
+            // Si hay teléfono del cliente, usarlo
+            let whatsappURL;
+            if (clientPhone && clientPhone.trim().length > 5) {
+                // Limpiar el teléfono (eliminar todo excepto números)
+                const cleanPhone = clientPhone.replace(/\D/g, '');
+                whatsappURL = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+                console.log('💬 Abriendo WhatsApp para:', cleanPhone);
+            } else {
+                whatsappURL = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                console.log('💬 Abriendo WhatsApp (sin número específico)');
+            }
+
             window.open(whatsappURL, '_blank');
         }
 
@@ -1346,12 +1428,16 @@ RNC: 131047939`;
             </div>
 
             <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-                <button onclick="copyLink()" style="background:#2E7D32; color:white; border:none; padding:12px 25px; border-radius:8px; cursor:pointer; font-weight:bold;">
+                <button id="copyLinkBtn" onclick="copyLink()" style="background:#2E7D32; color:white; border:none; padding:12px 25px; border-radius:8px; cursor:pointer; font-weight:bold; transition:all 0.3s;">
                     📋 Copiar Link
                 </button>
 
                 <button onclick="sendEmailToClient()" style="background:#1976d2; color:white; border:none; padding:12px 25px; border-radius:8px; cursor:pointer; font-weight:bold;">
                     📧 Enviar por Email
+                </button>
+
+                <button onclick="copyEmailMessage()" style="background:#ff9800; color:white; border:none; padding:12px 25px; border-radius:8px; cursor:pointer; font-weight:bold;">
+                    📋 Copiar Mensaje Email
                 </button>
 
                 <button onclick="shareWhatsApp()" style="background:#25d366; color:white; border:none; padding:12px 25px; border-radius:8px; cursor:pointer; font-weight:bold;">
