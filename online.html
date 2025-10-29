@@ -757,32 +757,46 @@
                 }
             });
 
-            // Capturar firma de HYGHU
-            const firmaHyghu = signaturePadHyghu.isEmpty() ? null : signaturePadHyghu.toDataURL();
+            // Validar que hay al menos un servicio
+            if (services.length === 0) {
+                showAlert('Debe agregar al menos un servicio', 'error');
+                return;
+            }
 
-            // Preparar datos para Supabase
+            // Capturar firma de HYGHU (validar que no esté vacía)
+            if (signaturePadHyghu.isEmpty()) {
+                showAlert('Debe firmar como representante de HYGHU', 'error');
+                return;
+            }
+            const firmaHyghu = signaturePadHyghu.toDataURL();
+
+            // Preparar datos para Supabase (nombres de columnas correctos)
             const orderData = {
                 id: orderId,
-                numero_orden: document.getElementById('numeroOrden').value,
+                // Datos del cliente
+                cliente_nombre: document.getElementById('razonSocial').value,
+                cliente_telefono: document.getElementById('telefono').value,
+                cliente_email: document.getElementById('email').value,
+                cliente_direccion: document.getElementById('direccion').value,
+                cliente_rnc: document.getElementById('rnc').value,
+                // Datos de la orden
+                orden_numero: document.getElementById('numeroOrden').value,
                 fecha_emision: document.getElementById('fechaEmision').value,
-                fecha_vencimiento: document.getElementById('fechaVencimiento').value,
-                razon_social: document.getElementById('razonSocial').value,
-                rnc: document.getElementById('rnc').value,
-                direccion: document.getElementById('direccion').value,
-                telefono: document.getElementById('telefono').value,
-                email: document.getElementById('email').value,
-                servicios: JSON.stringify(services),
+                // Servicios y totales
+                servicios: services, // Supabase acepta JSONB directamente
                 subtotal: parseFloat(document.getElementById('subtotal').textContent),
                 itbis: parseFloat(document.getElementById('itbis').textContent),
                 descuentos: parseFloat(document.getElementById('descuentos').value) || 0,
                 total: parseFloat(document.getElementById('total').textContent),
-                observaciones: document.getElementById('observaciones').value,
-                modalidad_pago: document.querySelector('input[name="modalidadPago"]:checked')?.value,
+                // Observaciones y pago
+                observaciones: document.getElementById('observaciones').value || '',
+                modalidad_pago: document.querySelector('input[name="modalidadPago"]:checked')?.value || '',
+                // Firma de HYGHU
                 firma_hyghu: firmaHyghu,
-                nombre_hyghu: document.getElementById('nombreHyghu').value,
-                fecha_firma_hyghu: document.getElementById('fechaHyghu').value,
-                estado: 'pendiente_firma_cliente',
-                created_at: new Date().toISOString()
+                hyghu_firmante: document.getElementById('nombreHyghu').value,
+                fecha_firma_hyghu: new Date().toISOString(),
+                // Estado
+                estado: 'pendiente_cliente'
             };
 
             // Guardar en Supabase
@@ -793,10 +807,13 @@
                 return;
             }
 
-            // Mostrar modal con el link
+            showAlert('¡Orden guardada exitosamente!', 'success');
+
+            // Mostrar modal con el link para el cliente
             showClientLink(orderId);
 
-            showAlert('Generando PDF...', 'success');
+            // Opcional: Generar PDF para HYGHU como respaldo
+            showAlert('Generando PDF de respaldo...', 'success');
 
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
