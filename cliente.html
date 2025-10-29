@@ -964,8 +964,47 @@ Gracias por su colaboración.`);
                 yPos += splitObs.length * 5;
             }
 
+            // MODALIDAD DE PAGO
+            if (orderData.modalidad_pago) {
+                yPos += 10;
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(...greenColor);
+                doc.text('MODALIDAD DE PAGO:', 20, yPos);
+                yPos += 5;
+                doc.setFontSize(9);
+                doc.setTextColor(0, 0, 0);
+                doc.setFont(undefined, 'normal');
+                doc.text(orderData.modalidad_pago, 20, yPos);
+                yPos += 5;
+            }
+
+            // TÉRMINOS Y CONDICIONES
+            yPos += 10;
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(...greenColor);
+            doc.text('TÉRMINOS Y CONDICIONES', 20, yPos);
+            yPos += 7;
+            doc.setFontSize(8);
+            doc.setTextColor(0, 0, 0);
+            doc.setFont(undefined, 'normal');
+
+            const terminos = [
+                '1. Esta orden de servicio está sujeta a los términos y condiciones acordados entre ambas partes.',
+                '2. El cliente deberá cumplir con todas las especificaciones y requerimientos acordados.',
+                '3. Los servicios deberán cumplir con todas las normativas legales vigentes en la República Dominicana.',
+                '4. Cualquier modificación a esta orden deberá ser autorizada por escrito.'
+            ];
+
+            terminos.forEach(termino => {
+                const splitTermino = doc.splitTextToSize(termino, 170);
+                doc.text(splitTermino, 20, yPos);
+                yPos += splitTermino.length * 4 + 2;
+            });
+
             // FIRMAS
-            yPos += 15;
+            yPos += 10;
             doc.setFontSize(10);
             doc.setTextColor(0, 0, 0);
 
