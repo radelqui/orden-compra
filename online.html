@@ -169,6 +169,29 @@
             border-radius: 4px;
         }
 
+        .service-currency {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .remove-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .remove-btn:hover {
+            background: #d32f2f;
+            transform: scale(1.05);
+        }
+
         .add-service-btn {
             padding: 10px 20px;
             background: #2E7D32;
@@ -458,14 +481,23 @@
             <table class="services-table" id="servicesTable">
                 <thead>
                     <tr>
-                        <th style="width: 70%">Descripción del Servicio</th>
-                        <th style="width: 30%">Monto (RD$)</th>
+                        <th style="width: 50%">Descripción del Servicio</th>
+                        <th style="width: 15%">Moneda</th>
+                        <th style="width: 25%">Monto</th>
+                        <th style="width: 10%">Acción</th>
                     </tr>
                 </thead>
                 <tbody id="servicesBody">
                     <tr>
                         <td><input type="text" class="service-desc" placeholder="Descripción del servicio"></td>
+                        <td>
+                            <select class="service-currency" onchange="calculateTotals()">
+                                <option value="RD$">RD$</option>
+                                <option value="USD">USD</option>
+                            </select>
+                        </td>
                         <td><input type="number" class="service-amount" placeholder="0.00" step="0.01" onchange="calculateTotals()"></td>
+                        <td><button onclick="removeServiceRow(this)" class="remove-btn">❌</button></td>
                     </tr>
                 </tbody>
             </table>
@@ -619,25 +651,57 @@
             const row = tbody.insertRow();
             row.innerHTML = `
                 <td><input type="text" class="service-desc" placeholder="Descripción del servicio"></td>
+                <td>
+                    <select class="service-currency" onchange="calculateTotals()">
+                        <option value="RD$">RD$</option>
+                        <option value="USD">USD</option>
+                    </select>
+                </td>
                 <td><input type="number" class="service-amount" placeholder="0.00" step="0.01" onchange="calculateTotals()"></td>
+                <td><button onclick="removeServiceRow(this)" class="remove-btn" style="background:#f44336; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">❌</button></td>
             `;
         }
 
-        function calculateTotals() {
-            const amounts = document.querySelectorAll('.service-amount');
-            let subtotal = 0;
+        function removeServiceRow(button) {
+            const row = button.closest('tr');
+            row.remove();
+            calculateTotals();
+        }
 
-            amounts.forEach(input => {
-                subtotal += parseFloat(input.value) || 0;
+        function calculateTotals() {
+            const serviceRows = document.querySelectorAll('#servicesBody tr');
+            let subtotalRD = 0;
+            let subtotalUSD = 0;
+
+            serviceRows.forEach(row => {
+                const amountInput = row.querySelector('.service-amount');
+                const currencySelect = row.querySelector('.service-currency');
+
+                if (amountInput && amountInput.value && currencySelect) {
+                    const amount = parseFloat(amountInput.value) || 0;
+                    if (currencySelect.value === 'RD$') {
+                        subtotalRD += amount;
+                    } else {
+                        subtotalUSD += amount;
+                    }
+                }
             });
 
-            const itbis = subtotal * 0.18;
-            const descuentos = parseFloat(document.getElementById('descuentos').value) || 0;
-            const total = subtotal + itbis - descuentos;
+            // Calcular ITBIS (18%) para ambas monedas
+            const itbisRD = subtotalRD * 0.18;
+            const itbisUSD = subtotalUSD * 0.18;
 
-            document.getElementById('subtotal').textContent = subtotal.toFixed(2);
-            document.getElementById('itbis').textContent = itbis.toFixed(2);
-            document.getElementById('total').textContent = total.toFixed(2);
+            // Obtener descuentos (por ahora solo en RD$)
+            const descuentosRD = parseFloat(document.getElementById('descuentos').value) || 0;
+
+            // Calcular totales
+            const totalRD = subtotalRD + itbisRD - descuentosRD;
+            const totalUSD = subtotalUSD + itbisUSD;
+
+            // Actualizar displays
+            document.getElementById('subtotal').innerHTML = `RD$ ${subtotalRD.toFixed(2)}<br>USD ${subtotalUSD.toFixed(2)}`;
+            document.getElementById('itbis').innerHTML = `RD$ ${itbisRD.toFixed(2)}<br>USD ${itbisUSD.toFixed(2)}`;
+            document.getElementById('total').innerHTML = `RD$ ${totalRD.toFixed(2)}<br>USD ${totalUSD.toFixed(2)}`;
         }
 
         function showAlert(message, type) {
@@ -789,16 +853,20 @@
             // Generar UUID para la orden
             const orderId = generateUUID();
 
-            // Capturar servicios
-            const serviceDescs = document.querySelectorAll('.service-desc');
-            const serviceAmounts = document.querySelectorAll('.service-amount');
+            // Capturar servicios con moneda
+            const serviceRows = document.querySelectorAll('#servicesBody tr');
             const services = [];
 
-            serviceDescs.forEach((desc, index) => {
-                if (desc.value.trim()) {
+            serviceRows.forEach(row => {
+                const desc = row.querySelector('.service-desc');
+                const amount = row.querySelector('.service-amount');
+                const currency = row.querySelector('.service-currency');
+
+                if (desc && desc.value.trim() && amount && currency) {
                     services.push({
                         descripcion: desc.value.trim(),
-                        monto: parseFloat(serviceAmounts[index].value) || 0
+                        monto: parseFloat(amount.value) || 0,
+                        moneda: currency.value
                     });
                 }
             });
